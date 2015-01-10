@@ -1,0 +1,201 @@
+\documentclass[11pt]{article}
+
+\usepackage{xcolor}
+\usepackage{fullpage}
+\usepackage[colorlinks, allcolors=blue]{hyperref}
+\usepackage{listings}
+\usepackage{parskip}
+
+\lstset
+{
+  basicstyle=\ttfamily,
+}
+
+\date{}
+\title{\textbf{A~\lstinline{pre_main} function that runs before\\
+                static initialization that precedes \lstinline{main}}}
+
+\author{}
+
+\newcommand{\emailCK}{\href{mailto:e\_float@yahoo.com}{e\_float@yahoo.com}}
+\newcommand{\emailDG}{\href{mailto:daniel.gutson@tallertechnologies.com}{daniel.gutson@tallertechnologies.com}}
+
+
+
+\begin{document}
+
+\maketitle\vspace{-2cm}
+
+\begin{flushright}
+  \begin{tabular}{ll}
+  Document \#:&D9999\\
+  Date:       &\date{2014-12-10}\\
+  Project:    &Programming Language C++\\
+              &Evolution Working Group\\
+  Reply-to:   &\author{Daniel Gutson}\\
+              &\textless\emailDG\textgreater\\
+              &\author{Christopher Kormanyos}\\
+              &\textless\emailCK\textgreater\\
+  \end{tabular}
+\end{flushright}
+
+\section{Motivation}
+\subsection*{Overview}
+Many systems require user-specific initialization. In particular,
+deeply embedded environments may have user-specific initialization
+that should be executed as soon as possible following power-on-reset
+of the microcontroller.
+Examples thereof include initialization of I/O~ports, watchdog timers,
+clock systems,~\emph{etc}. For these environments, postponing
+user-specific initialization until \lstinline{main} may detract from
+quality of design.
+
+\section{Proposed Solution}
+This document proposes changes in the standard text reflecting
+the specification of a new \lstinline{pre_main} function
+that is called prior to static initialization that
+precedes \lstinline{main}.
+
+\subsection*{Modification to the standard text}
+\begin{enumerate}
+
+  \item \textbf{[basic.start.main] Add a new paragraph \S3.6.1p6}
+
+  The \lstinline{pre_main} function shall be called prior to
+  \emph{static} \emph{initialization} (\S3.6.2)
+  that precedes \lstinline{main}.
+  The linkage (3.5) of \lstinline{pre_main} is implementation-defined.
+  The \lstinline{pre_main} function is parameter-free.
+  The return value of \lstinline{pre_main} is~\lstinline{void}.
+  The \lstinline{pre_main} function lacks side-effects.
+  The mechanism ensuring that \lstinline{pre_main} lacks
+  side-effects is implementation-defined.
+  %%%% END OF FIRST ITEM %%%%
+
+\end{enumerate}
+
+\subsection*{Sample code}
+
+We will now look at sample code showing how an implementation
+might potentiallly provide a call mechanism for \lstinline{pre_main}.
+  
+\begin{lstlisting}
+void __my_startup()
+{
+  // Load the sreg register.
+  asm volatile("eor r1, r1");
+  asm volatile("out 0x3F, r1");
+
+  // Set the stack pointer.
+  asm volatile("ldi r28, lo8(__initial_stack_pointer)");
+  asm volatile("ldi r29, hi8(__initial_stack_pointer)");
+
+  // Load the stack pointer high and low registers.
+  asm volatile("out 0x3E, r29");
+  asm volatile("out 0x3D, r28");
+
+  // A potential call mechanism for pre_main.
+  pre_main();
+
+  // Initialize statics from ROM to RAM.
+  // Initialize default-initialized static RAM.
+  crt::init_ram();
+
+  // Call all ctor initializations.
+  crt::init_ctors();
+
+  // Call main (and never return).
+  asm volatile("call main");
+
+  // Catch an unexpected return from main.
+  for(;;)
+  {
+    // Replace with a loud error if desired.
+    mcal::wdg::secure::trigger();
+  }
+}
+\end{lstlisting}
+  
+This example has been taken from a low-level initialization
+sequence for a popular 8--bit microcontroller. The code has
+been compiled and tested with GCC 4.8.1. After setting a
+CPU register, the stack pointer is initialized.
+Immediately following stack setup, \lstinline{pre_main} is called.
+Note that \lstinline{pre_main} is called prior to
+static initialization.
+
+\section{Future Work}
+
+The motivation and justification for a potential \lstinline{pre_main}
+is analogous in C and C++. Specifying \lstinline{pre_main}
+could potentially be addressed in WG14 as well as WG21.
+
+Along these lines, do we need two versions of \lstinline{pre_main}?
+In particular,
+
+\begin{lstlisting}
+void    ::pre_main(void); // Intended for C
+void std::pre_main();     // Intended for C++
+\end{lstlisting}
+
+What is the proper name of a potential \lstinline{pre_main}?
+Is \lstinline{pre_init} a better name because it
+more clearly reflects when the function is called?
+
+Despite the proposal that \lstinline{pre_main} is to lack side-effects,
+it could be beneficial to allow \lstinline{pre_main} to initialize certain
+\emph{clearly} \emph{identifiable} non-local variables
+having static storage duration.
+Embedded systems tool chains for C/C++ typically provide special
+linker sections with implementation-specific names such as
+\lstinline{.noinit}, \lstinline{.noclear}, \emph{etc}. These are meant
+to store non-local variables having static storage duration that are not
+intended to undergo static initialization.
+Attributes such as \lstinline{[[noclear]]} or \lstinline{[[noinit]]}
+could be used to clearly identify these.
+
+Consider, for example, the \lstinline{reset_reason} in
+the following code.
+
+\begin{lstlisting}
+typedef enum enum_reset_reason
+{
+  power_on_reset,
+  watchdog_reset,
+  software_reset
+}
+reset_reason_type;
+
+[[noclear]] reset_reason_type reset_reason;
+\end{lstlisting}
+
+\noindent
+Here, \lstinline{reset_reason} is intended to be initialized by
+\lstinline{pre_main} in the application, not via conventional
+static initialization.
+
+\section{Discussion}
+
+TBD: Summarize the discussion regarding when \lstinline{pre_main}
+should be called and why.
+
+TBD: Summarize the discussion regarding the dangers of
+offering an open user-interface that precedes \lstinline{main}.
+Will users run into inordinate amounts of trouble with this
+proposed interface?
+
+\section{Acknowledgments}
+
+TBD: Acknowledge the participants.
+
+\section{References}
+\renewcommand{\section}[2]{}%
+\begin{thebibliography}{9}
+
+TBD: Any references?
+
+%% TBD %%
+
+\end{thebibliography}
+
+\end{document}
