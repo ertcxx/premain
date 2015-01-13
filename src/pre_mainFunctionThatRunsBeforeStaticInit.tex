@@ -74,10 +74,19 @@ precedes \lstinline{main}.
 
 \end{enumerate}
 
-\subsection*{Sample code}
+\section{Existing mechanisms and workarounds}
 
-We will now look at sample code showing how an implementation
-might potentiallly provide a call mechanism for \lstinline{pre_main}.
+We will now investigate existing mechanisms and
+workarounds that implement a \lstinline{pre_main}-style
+mechanism.
+
+\subsection*{Custom startup code}
+
+Many embedded systems developers write custom startup
+code that supports a kind of \lstinline{pre_main} function.
+For example, we will now look at sample code showing how
+an implementation of startup code might potentially provide
+a call mechanism for \lstinline{pre_main}.
   
 \begin{lstlisting}
 void __my_startup()
@@ -123,6 +132,16 @@ CPU register, the stack pointer is initialized.
 Immediately following stack setup, \lstinline{pre_main} is called.
 Note that \lstinline{pre_main} is called prior to
 static initialization.
+
+\subsection*{Commercially available microcontroller compilers}
+
+Some commercially available microcontroller compilers provide
+a custom hook (in the sense of \lstinline{pre_main}) that
+is called before static initialization that precedes \lstinline{main}.
+The IAR~Systems C/C++ compiler, for instance, uses
+an implementation-specific function called \lstinline{__low_level_init}
+for this purpose. The user is responsible for the content (if any)
+of \lstinline{__low_level_init}.
 
 \section{Future Work}
 
