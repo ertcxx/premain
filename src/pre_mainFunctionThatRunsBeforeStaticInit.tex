@@ -6,6 +6,8 @@
 \usepackage{listings}
 \usepackage{parskip}
 
+\def\trademarksymbolr   {$^{\mbox{\textregistered}}$}
+
 \lstset
 {
   basicstyle=\ttfamily,
@@ -17,9 +19,9 @@
 
 \author{}
 
-\newcommand{\emailCK}{\href{mailto:e\_float@yahoo.com}{e\_float@yahoo.com}}
+\newcommand{\emailSD}{\href{mailto:sebastian.davalle@tallertechnologies.com}{sebastian.davalle@tallertechnologies.com}}
 \newcommand{\emailDG}{\href{mailto:daniel.gutson@tallertechnologies.com}{daniel.gutson@tallertechnologies.com}}
-
+\newcommand{\emailCK}{\href{mailto:e\_float@yahoo.com}{e\_float@yahoo.com}}
 
 
 \begin{document}
@@ -29,10 +31,12 @@
 \begin{flushright}
   \begin{tabular}{ll}
   Document \#:&D9999\\
-  Date:       &\date{2014-12-10}\\
+  Date:       &\date{\today}\\
   Project:    &Programming Language C++\\
               &Evolution Working Group\\
-  Reply-to:   &\author{Daniel Gutson}\\
+  Reply-to:   &\author{S\'{e}bastian Davalle}\\
+              &\textless\emailSD\textgreater\\
+              &\author{Daniel Gutson}\\
               &\textless\emailDG\textgreater\\
               &\author{Christopher Kormanyos}\\
               &\textless\emailCK\textgreater\\
@@ -83,10 +87,10 @@ mechanism.
 \subsection*{Custom startup code}
 
 Many embedded systems developers write custom startup
-code that supports a kind of \lstinline{pre_main} function.
+code that supports a kind of~\lstinline{pre_main} function.
 For example, we will now look at sample startup code that
-shows how an implementation could potentially provide
-a call mechanism for \lstinline{pre_main}.
+shows how an implementation could potentially provide a call mechanism
+for~\lstinline{pre_main}~\cite{bib:kormanyos2013,bib:kormanyosgit2015}.
   
 \begin{lstlisting}
 void __my_startup()
@@ -125,10 +129,10 @@ void __my_startup()
 }
 \end{lstlisting}
   
-This example has been taken from a low-level initialization
-sequence for a popular 8--bit microcontroller. The code has
-been compiled and tested with GCC 4.8.1. After setting a
-CPU register, the stack pointer is initialized.
+This example has been taken from a low-level
+initialization sequence for a popular 8--bit microcontroller.
+The code has been compiled and tested with GCC~4.8.1.
+After setting a CPU register, the stack pointer is initialized.
 Immediately following stack setup, \lstinline{pre_main} is called.
 Note that \lstinline{pre_main} is called prior to
 static initialization.
@@ -138,22 +142,23 @@ static initialization.
 Some commercially available microcontroller compilers provide
 a custom hook (in the sense of \lstinline{pre_main}) that
 is called before static initialization that precedes \lstinline{main}.
-The IAR~Systems C/C++ compiler, for instance, uses
-an implementation-specific function called \lstinline{__low_level_init}
-for this purpose. The user is responsible for the content (if any)
-of \lstinline{__low_level_init}.
+The IAR~Systems C/C++ compiler and debugger toolchain~\cite{bib:iar2015},
+for instance, uses an implementation-specific function
+called \lstinline{__low_level_init} for this purpose.
+The user is responsible for supplying the content (if~any)
+of~\lstinline{__low_level_init}.
 
 \section{Future Work}
 
 The motivation and justification for a potential \lstinline{pre_main}
 is analogous in C and C++. Specifying \lstinline{pre_main}
-could potentially be addressed in WG14 as well as WG21.
+could potentially be addressed in~WG14 as well as~WG21.
 
 Along these lines, do we need two versions of \lstinline{pre_main}?
 In particular,
 
 \begin{lstlisting}
-void    ::pre_main(void); // Intended for C
+void    ::pre_main(void); // Intended for C/C++
 void std::pre_main();     // Intended for C++
 \end{lstlisting}
 
@@ -211,7 +216,19 @@ TBD: Acknowledge the participants.
 \renewcommand{\section}[2]{}%
 \begin{thebibliography}{9}
 
-TBD: Any references?
+
+\bibitem{bib:kormanyos2013}
+C.~M.~Kormanyos, {\em Real-Time C++},
+Springer Verlag, Heidelberg,~2013.
+
+\bibitem{bib:kormanyosgit2015}
+C.~M.~Kormanyos, Companion code for {\em Real-Time C++},
+{\href{https://github.com/ckormanyos/real-time-cpp}{real-time-cpp}},~2015.
+
+\bibitem{bib:iar2015}
+IAR~Systems, IAR Embedded Workbench\trademarksymbolr\
+C/C++ compiler and debugger toolchain,
+IAR~Systems,~2015.
 
 %% TBD %%
 
