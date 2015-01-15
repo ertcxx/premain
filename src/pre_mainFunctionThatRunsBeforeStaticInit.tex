@@ -49,10 +49,11 @@ Many systems require user-specific initialization. In particular,
 deeply embedded environments may have user-specific initialization
 that should be executed as soon as possible following power-on-reset
 of the microcontroller.
-Examples thereof include initialization of I/O~ports, watchdog timers,
-clock systems,~\emph{etc}. For these environments, postponing
-user-specific initialization until \lstinline{main} may detract from
-quality of design.
+Typical examples thereof include initialization of
+I/O~ports, watchdog timers, instruction and data cache systems,
+interrupt systems, clock systems,~\emph{etc}. For these environments,
+postponing user-specific initialization until~\lstinline{main}
+may detract from quality of design.
 
 \section{Proposed Solution}
 This document proposes changes in the standard text reflecting
@@ -78,19 +79,21 @@ precedes \lstinline{main}.
 
 \end{enumerate}
 
-\section{Existing mechanisms and workarounds}
+\section{Existing workarounds}
 
-We will now investigate existing mechanisms and
-workarounds that implement a \lstinline{pre_main}-style
-mechanism.
+We will now investigate existing workarounds for providing
+a call mechanism for~\lstinline{pre_main} or a similar
+call mechanism.
 
-\subsection*{Custom startup code}
+\subsection*{Sample startup code}
 
-Many embedded systems developers write custom startup
-code that supports a kind of~\lstinline{pre_main} function.
-For example, we will now look at sample startup code that
-shows how an implementation could potentially provide a call mechanism
-for~\lstinline{pre_main}~\cite{bib:kormanyos2013,bib:kormanyosgit2015}.
+Embedded systems developers and compiler implementers often
+write startup code. In this case, it is straight forward
+to support a~\lstinline{pre_main} function.
+For example, we will now look at sample startup
+code~\cite{bib:kormanyos2013,bib:kormanyosgit2015}
+showing how an implementation could potentially provide
+a call mechanism for~\lstinline{pre_main}.
   
 \begin{lstlisting}
 void __my_startup()
@@ -99,11 +102,9 @@ void __my_startup()
   asm volatile("eor r1, r1");
   asm volatile("out 0x3F, r1");
 
-  // Set the stack pointer.
+  // Setup the stack pointer.
   asm volatile("ldi r28, lo8(__initial_stack_pointer)");
   asm volatile("ldi r29, hi8(__initial_stack_pointer)");
-
-  // Load the stack pointer high and low registers.
   asm volatile("out 0x3E, r29");
   asm volatile("out 0x3D, r28");
 
@@ -129,8 +130,8 @@ void __my_startup()
 }
 \end{lstlisting}
   
-This example has been taken from a low-level
-initialization sequence for a popular 8--bit microcontroller.
+This example has been taken from the low-level
+initialization sequence of a popular 8--bit microcontroller.
 The code has been compiled and tested with GCC~4.8.1.
 After setting a CPU register, the stack pointer is initialized.
 Immediately following stack setup, \lstinline{pre_main} is called.
@@ -151,7 +152,7 @@ of~\lstinline{__low_level_init}.
 \section{Future Work}
 
 The motivation and justification for a potential \lstinline{pre_main}
-is analogous in C and C++. Specifying \lstinline{pre_main}
+is analogous in C and C++. Therefore, specifying \lstinline{pre_main}
 could potentially be addressed in~WG14 as well as~WG21.
 
 Along these lines, do we need two versions of \lstinline{pre_main}?
