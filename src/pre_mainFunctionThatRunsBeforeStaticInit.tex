@@ -14,8 +14,8 @@
 }
 
 \date{}
-\title{\textbf{A~\lstinline{pre_main} function that runs before\\
-                static initialization that precedes \lstinline{main}}}
+\title{\textbf{A~\lstinline{pre_main()} function that runs before\\
+                static initialization that precedes \lstinline{main()}}}
 
 \author{}
 
@@ -51,29 +51,32 @@ that should be executed as soon as possible following power-on-reset
 of the microcontroller.
 Typical examples thereof include initialization of
 I/O~ports, watchdog timers, instruction and data cache systems,
-interrupt systems, clock systems,~\emph{etc}. For these environments,
-postponing user-specific initialization until~\lstinline{main}
+interrupt systems, clock systems,~etc. For these environments,
+postponing user-specific initialization until~\lstinline{main()}
 may detract from quality of design.
+Another important use is setting up tools such as logging or allocator
+mechanisms---notoriously meticulous activities that could
+potentially be simplified with a \lstinline{pre_main()} initialization.
 
 \section{Proposed Solution}
 This document proposes changes in the standard text reflecting
-the specification of a new \lstinline{pre_main} function
-that is called prior to static initialization that
-precedes \lstinline{main}.
+the specification of a \lstinline{pre_main()} function
+that is intended to be called prior to static initialization that
+precedes \lstinline{main()}.
 
 \subsection*{Modification to the standard text}
 \begin{enumerate}
 
   \item \textbf{[basic.start.main] Add a new paragraph \S3.6.1p6}
 
-  The \lstinline{pre_main} function shall be called prior to
+  The \lstinline{pre_main()} function shall be called prior to
   \emph{static} \emph{initialization} (\S3.6.2)
   that precedes \lstinline{main}.
-  The linkage (3.5) of \lstinline{pre_main} is implementation-defined.
-  The \lstinline{pre_main} function is parameter-free.
-  The return value of \lstinline{pre_main} is~\lstinline{void}.
-  The \lstinline{pre_main} function lacks side-effects.
-  The mechanism ensuring that \lstinline{pre_main} lacks
+  The linkage (3.5) of \lstinline{pre_main()} is implementation-defined.
+  The \lstinline{pre_main()} function is parameter-free.
+  The return value of \lstinline{pre_main()} is~\lstinline{void}.
+  The \lstinline{pre_main()} function lacks side-effects.
+  The mechanism ensuring that \lstinline{pre_main()} lacks
   side-effects is implementation-defined.
   %%%% END OF FIRST ITEM %%%%
 
@@ -82,18 +85,18 @@ precedes \lstinline{main}.
 \section{Existing workarounds}
 
 We will now investigate existing workarounds for providing
-a call mechanism for~\lstinline{pre_main} or a similar
+a call mechanism for~\lstinline{pre_main()} or a similar
 call mechanism.
 
 \subsection*{Sample startup code}
 
 Embedded systems developers and compiler implementers often
 write startup code. In this case, it is straight forward
-to support a~\lstinline{pre_main} function.
+to support a~\lstinline{pre_main()} function.
 For example, we will now look at sample startup
 code~\cite{bib:kormanyos2013,bib:kormanyosgit2015}
 showing how an implementation could potentially provide
-a call mechanism for~\lstinline{pre_main}.
+a call mechanism for~\lstinline{pre_main()}.
   
 \begin{lstlisting}
 void __my_startup()
@@ -132,30 +135,30 @@ void __my_startup()
   
 This example has been taken from the low-level
 initialization sequence of a popular 8--bit microcontroller.
-The code has been compiled and tested with GCC~4.8.1.
+The code has been compiled and tested with GCC~4.8.1~\cite{bib:gccwebsite}.
 After setting a CPU register, the stack pointer is initialized.
-Immediately following stack setup, \lstinline{pre_main} is called.
-Note that \lstinline{pre_main} is called prior to
+Immediately following stack setup, \lstinline{pre_main()} is called.
+Note that \lstinline{pre_main()} is called prior to
 static initialization.
 
 \subsection*{Commercially available microcontroller compilers}
 
 Some commercially available microcontroller compilers provide
-a custom hook (in the sense of \lstinline{pre_main}) that
-is called before static initialization that precedes \lstinline{main}.
+a custom hook (in the sense of \lstinline{pre_main()}) that
+is called before static initialization that precedes \lstinline{main()}.
 The IAR~Systems C/C++ compiler and debugger toolchain~\cite{bib:iar2015},
 for instance, uses an implementation-specific function
-called \lstinline{__low_level_init} for this purpose.
+called \lstinline{__low_level_init()} for this purpose.
 The user is responsible for supplying the content (if~any)
-of~\lstinline{__low_level_init}.
+of~\lstinline{__low_level_init()}.
 
 \section{Future Work}
 
-The motivation and justification for a potential \lstinline{pre_main}
-is analogous in C and C++. Therefore, specifying \lstinline{pre_main}
+The motivation and justification for a potential \lstinline{pre_main()}
+is analogous in C and C++. Therefore, specifying \lstinline{pre_main()}
 could potentially be addressed in~WG14 as well as~WG21.
 
-Along these lines, do we need two versions of \lstinline{pre_main}?
+Along these lines, do we need two versions of \lstinline{pre_main()}?
 In particular,
 
 \begin{lstlisting}
@@ -163,17 +166,17 @@ void    ::pre_main(void); // Intended for C/C++
 void std::pre_main();     // Intended for C++
 \end{lstlisting}
 
-What is the proper name of a potential \lstinline{pre_main}?
-Is \lstinline{pre_init} a better name because it
+What is the proper name of a potential \lstinline{pre_main()}?
+Is \lstinline{pre_init()} a better name because it
 more clearly reflects when the function is called?
 
-Despite the proposal that \lstinline{pre_main} is to lack side-effects,
-it could be beneficial to allow \lstinline{pre_main} to initialize certain
+Despite the proposal that \lstinline{pre_main()} lacks side-effects,
+it could be beneficial to allow \lstinline{pre_main()} to initialize certain
 \emph{clearly} \emph{identifiable} non-local variables
 having static storage duration.
 Embedded systems tool chains for C/C++ typically provide special
 linker sections with implementation-specific names such as
-\lstinline{.noinit}, \lstinline{.noclear}, \emph{etc}. These are meant
+\lstinline{.noinit}, \lstinline{.noclear},~etc. These are meant
 to store non-local variables having static storage duration that are not
 intended to undergo static initialization.
 Attributes such as \lstinline{[[noclear]]} or \lstinline{[[noinit]]}
@@ -196,18 +199,35 @@ reset_reason_type;
 
 \noindent
 Here, \lstinline{reset_reason} is intended to be initialized by
-\lstinline{pre_main} in the application, not via conventional
+\lstinline{pre_main()} in the application, not via conventional
 static initialization.
 
 \section{Discussion}
 
-TBD: Summarize the discussion regarding when \lstinline{pre_main}
+TBD: Summarize the discussion regarding when \lstinline{pre_main()}
 should be called and why.
 
 TBD: Summarize the discussion regarding the dangers of
-offering an open user-interface that precedes \lstinline{main}.
+offering an open user-interface that precedes \lstinline{main()}.
 Will users run into inordinate amounts of trouble with this
 proposed interface?
+
+TBD: Specify what can be done and not inside \lstinline{pre-main()}
+
+TBD: Distinguish the usage in terms of freestanding/hosted implementation.
+
+TBD: Define what should be done in a failure condition. 
+
+TBD: Exception handling (nonexcept attribute) 
+
+TBD: Calls to \lstinline{std::} functions is allowed or not? 
+
+TBD: calls to \lstinline{atexit()},
+\lstinline{exit()},
+\lstinline{at_quick_exit()},
+\lstinline{quick_exit()} should be undefined.
+
+TBD: call to \lstinline{terminate()} should be implementation specific.
 
 \section{Acknowledgments}
 
@@ -218,18 +238,22 @@ TBD: Acknowledge the participants.
 \begin{thebibliography}{9}
 
 
-\bibitem{bib:kormanyos2013}
-C.~M.~Kormanyos, {\em Real-Time C++},
-Springer Verlag, Heidelberg,~2013.
-
-\bibitem{bib:kormanyosgit2015}
-C.~M.~Kormanyos, Companion code for {\em Real-Time C++},
-{\href{https://github.com/ckormanyos/real-time-cpp}{real-time-cpp}},~2015.
+\bibitem{bib:gccwebsite}
+Free Software Foundation: \emph{GNU Compiler Collection}\\
+\url{http://gcc.gnu.org}~(2015)
 
 \bibitem{bib:iar2015}
-IAR~Systems, IAR Embedded Workbench\trademarksymbolr\
-C/C++ compiler and debugger toolchain,
-IAR~Systems,~2015.
+IAR~Systems, \emph{IAR Embedded Workbench\trademarksymbolr\
+C/C++ compiler and debugger toolchain},\\
+\url{http://www.iar.com/Products/IAR-Embedded-Workbench}~(2015)
+
+\bibitem{bib:kormanyos2013}
+C.~M.~Kormanyos, \emph{Real-Time C++},
+Springer Verlag, Heidelberg,~2013
+
+\bibitem{bib:kormanyosgit2015}
+C.~M.~Kormanyos, \emph{real-time-cpp : Companion code for Real-Time C++},
+{\href{https://github.com/ckormanyos/real-time-cpp}{real-time-cpp}},~2015
 
 %% TBD %%
 
