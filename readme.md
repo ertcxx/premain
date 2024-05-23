@@ -7,4 +7,4 @@ static initialization.
 
 Intent:
   - As the name `pre_main` implies, this function is intended to be called one single time.
-  - It should be called _after_ static initialization, but _prior_ to calling the `main()` function.
+  - It should be called even _prior_ static initialization which is, itself, called _prior_ to calling the `main()` function.
